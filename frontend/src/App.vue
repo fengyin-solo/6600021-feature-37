@@ -18,10 +18,28 @@
           class="w-full h-32 bg-gray-800 rounded p-3 text-white resize-none" placeholder="输入英文文本..." />
       </div>
       <div class="bg-gray-900 rounded-xl p-4">
-        <h3 class="text-purple-300 font-bold mb-2">盲文输出</h3>
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-purple-300 font-bold">盲文输出</h3>
+          <button v-if="store.brailleOutput.length" @click="showDotDetails = !showDotDetails"
+            class="text-xs px-2 py-1 rounded transition-colors"
+            :class="showDotDetails ? 'bg-purple-500 text-white' : 'bg-gray-700 text-gray-400 hover:text-purple-300'">
+            点位说明 {{ showDotDetails ? '▾ 收起' : '▸ 展开' }}
+          </button>
+        </div>
         <div class="text-4xl tracking-wider text-purple-300 h-16">{{ store.brailleUnicode }}</div>
         <div class="flex flex-wrap gap-2 mt-3">
           <BrailleCell v-for="(dots, i) in store.brailleOutput" :key="i" :dots="dots" :size="40" />
+        </div>
+        <div v-if="showDotDetails && store.brailleOutput.length" class="mt-3 border-t border-gray-700 pt-3">
+          <div class="flex flex-wrap gap-x-4 gap-y-1">
+            <span v-for="(dots, i) in store.brailleOutput" :key="i"
+              class="text-sm"
+              :class="dots.length ? 'text-gray-300' : 'text-gray-600'">
+              <span class="text-purple-400 font-mono">{{ inputChars[i] }}</span>
+              <span v-if="dots.length" class="text-gray-500">→</span>
+              <span v-if="dots.length" class="text-gray-400">点位 {{ dots.join(',') }}</span>
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -96,7 +114,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useBrailleStore } from './store/braille'
 import { BRAILLE_MAP } from './utils/braille'
 import BrailleCell from './components/BrailleCell.vue'
@@ -109,6 +127,8 @@ const tabs = [
   { id: 'ref', label: '速查表' },
 ]
 const activeTab = ref('translate')
+const showDotDetails = ref(false)
+const inputChars = computed(() => store.inputText.toUpperCase().split(''))
 
 function doExport() {
   const text = store.exportPDF()
